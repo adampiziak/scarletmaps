@@ -1,5 +1,6 @@
 mod database;
 mod route;
+mod schema;
 pub mod nextbus;
 
 pub use self::database::Database;

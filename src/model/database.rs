@@ -17,4 +17,10 @@ impl Database {
     pub fn get_route(&self, id: &str) -> Option<&Route> {
         self.routes.get(id)
     }
+
+    pub fn get_all(&self) -> Vec<&Route> {
+        self.routes.iter().map(|(_, route)| route).collect()
+    }
 }
+
+

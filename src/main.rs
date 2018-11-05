@@ -1,30 +1,57 @@
-#![feature(proc_macro_hygiene, decl_macro)]
+#![feature(plugin)]
+#![plugin(rocket_codegen)]
 
-#[macro_use] extern crate rocket;
 #[macro_use] extern crate serde_derive;
+#[macro_use] extern crate juniper;
 
+extern crate rocket;
 extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
+extern crate juniper_rocket;
 
 mod api;
 mod model;
 mod scheduler;
 
-use rocket::State;
+use rocket::{State, Request};
+use rocket::response::content;
 use model::Database;
 use std::sync::{Arc, RwLock};
+use juniper::{EmptyMutation, RootNode};
 
-#[get("/<route_id>")]
-fn config(database: State<Arc<RwLock<Database>>>, route_id: String) -> String {
-    serde_json::to_string(database.read().unwrap().get_route(&route_id).unwrap()).unwrap()
+type Schema = RootNode<'static, Database, EmptyMutation<Database>>;
+
+#[get("/")]
+fn graphiql() -> content::Html<String> {
+    juniper_rocket::graphiql_source("/graphql")
+}
+
+#[get("/graphql?<request>")]
+fn graphql(context: State<Arc<RwLock<Database>>>,
+           request: juniper_rocket::GraphQLRequest,
+           schema: State<Schema>
+) -> juniper_rocket::GraphQLResponse {
+    request.execute(&schema, &context.read().unwrap())
+}
+
+#[post("/graphql", data = "<request>")]
+fn post_graphql(context: State<Arc<RwLock<Database>>>,
+                request: juniper_rocket::GraphQLRequest,
+                schema: State<Schema>)
+                -> juniper_rocket::GraphQLResponse {
+    request.execute(&schema, &context.read().unwrap())
 }
 
 fn main() {
     let database = Arc::new(RwLock::new(Database::new()));
     scheduler::start(Arc::clone(&database));
     rocket::ignite()
-        .mount("/", routes![config])
+        .mount("/", routes![post_graphql, graphiql, graphql])
         .manage(Arc::clone(&database))
+        .manage(Schema::new(
+            Database::new(),
+            EmptyMutation::<Database>::new(),
+        ))
         .launch();
 }
