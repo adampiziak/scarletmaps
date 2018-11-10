@@ -1,7 +1,21 @@
 use juniper::Context;
-use model::{Database, Route};
+use model::{Database, Route, RouteStop};
 
 impl Context for Database {}
+
+graphql_object!(RouteStop: Database | &self | {
+    field id() -> &String {
+        &self.id
+    }
+    
+    field name() -> &String {
+        &self.name
+    }
+
+    field arrivals() -> &Vec<f64> {
+        &self.arrivals
+    }
+});
 
 graphql_object!(Route: Database | &self | {
     field id() -> &String {
@@ -14,6 +28,10 @@ graphql_object!(Route: Database | &self | {
 
     field active() -> &bool {
         &self.active
+    }
+
+    field stops() -> &Vec<RouteStop> {
+        &self.stops
     }
 });
 

@@ -15,7 +15,7 @@ pub struct ConfigRoute {
     pub tag: String,
     pub title: String,
     #[serde(deserialize_with = "map_or_seq")]
-    stop: Vec<ConfigRouteStop>,
+    pub stop: Vec<ConfigRouteStop>,
     #[serde(deserialize_with = "from_str")]
     lat_max: f64,
     #[serde(deserialize_with = "from_str")]
@@ -28,8 +28,8 @@ pub struct ConfigRoute {
 
 #[derive(Deserialize)]
 pub struct ConfigRouteStop {
-    tag: String,
-    title: String,
+    pub tag: String,
+    pub title: String,
     #[serde(deserialize_with = "from_str")]
     lon: f64,
     #[serde(deserialize_with = "from_str")]
@@ -60,6 +60,59 @@ fn map_or_seq<'de, D>(deserializer: D) -> Result<Vec<ConfigRouteStop>, D::Error>
         }
 
         fn visit_seq<A>(self, visitor: A) -> Result<Vec<ConfigRouteStop>, A::Error>
+            where A: de::SeqAccess<'de>
+        {
+            Deserialize::deserialize(de::value::SeqAccessDeserializer::new(visitor))
+        }
+
+        // ERROR
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("stop or list of stops")
+        }
+    }
+
+    deserializer.deserialize_any(Stops)
+}
+
+#[derive(Deserialize)]
+pub struct Schedule {
+    pub predictions: Option<Vec<Prediction>>
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Prediction {
+    pub route_tag: String,
+    pub stop_tag: String,
+    pub direction: Option<Direction>
+}
+
+#[derive(Deserialize)]
+pub struct Direction {
+    #[serde(deserialize_with = "create_predictions_list")]
+    pub prediction: Vec<RouteStopTime>
+}
+
+#[derive(Deserialize)]
+pub struct RouteStopTime {
+    #[serde(deserialize_with = "from_str")]
+    pub epochTime: f64
+}
+
+fn create_predictions_list<'de, D>(deserializer: D) -> Result<Vec<RouteStopTime>, D::Error>
+    where D: Deserializer<'de>
+{
+    struct Stops;
+
+    impl<'de> de::Visitor<'de> for Stops {
+        type Value = Vec<RouteStopTime>;
+        fn visit_map<A>(self, map: A) -> Result<Vec<RouteStopTime>, A::Error>
+            where A: de::MapAccess<'de>
+        {
+            Ok(vec![Deserialize::deserialize(de::value::MapAccessDeserializer::new(map)).unwrap()])
+        }
+
+        fn visit_seq<A>(self, visitor: A) -> Result<Vec<RouteStopTime>, A::Error>
             where A: de::SeqAccess<'de>
         {
             Deserialize::deserialize(de::value::SeqAccessDeserializer::new(visitor))
