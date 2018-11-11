@@ -1,35 +1,82 @@
 use std::sync::{Arc, RwLock};
+use std::collections::HashMap;
 
-use model::{Database, Route, RouteStop};
+use api::lookup;
+use model::{Database, Route, RouteStop, Stop, StopRoute};
 use model::nextbus::{Config, Schedule};
+use model::prediction::{RoutePrediction,
+                        StopPrediction,
+                        StopRoutePrediction,
+                        RouteStopPrediction};
 
 pub fn parse_config(database: Arc<RwLock<Database>>, config: Config) {
-    println!("Acquiring write lock <2> for database...");
-    let mut database = database.write().unwrap();
-    println!("Lock <2> acquired");
-    for route in config.route.into_iter() {
-        let mut stops = Vec::new();
-        for stop in route.stop.into_iter() {
-            stops.push(RouteStop::new(stop.tag, stop.title));
+    let mut routes = HashMap::new();
+    let mut stops = HashMap::new();
+    
+    for r in config.route.into_iter() {
+        let route = routes.entry(r.tag.clone()).or_insert(Route::new(r.tag.clone(), r.title.clone()));
+        for s in r.stop.into_iter() {
+            let stop_campus = lookup::stop_campus(&s.tag);
+            let stop = stops.entry(s.tag.clone())
+                .or_insert(Stop::new(s.tag.clone(), s.title.clone(), stop_campus.clone()));
+            stop.routes.push(StopRoute::new(r.tag.clone(), r.title.clone()));
+            route.stops.push(RouteStop::new(s.tag, s.title, stop_campus));
         }
-        
-        database.update_route(Route::new(route.tag, route.title, stops));
     }
-    println!("Lock <2> released");
+
+    let mut database = database.write().unwrap();
+    for (_, route) in routes {
+        database.add_route(route);
+    }
+
+    for (_, stop) in stops {
+        database.add_stop(stop);
+    }
 }
 
+
 pub fn parse_predictions(database: Arc<RwLock<Database>>, schedule: Schedule) {
-    println!("Acquiring write lock for schedule update");
-    let mut database = database.write().unwrap();
-    println!("Lock for schedule acquired");
-    for prediction in schedule.predictions.unwrap().into_iter() {
-        let route_id = prediction.route_tag;
-        let stop_id = prediction.stop_tag;
+    let mut predictions: HashMap<(String, String), Vec<f64>> = HashMap::new();
+
+    let mut routes = HashMap::new();
+    let mut stops  = HashMap::new();
+
+    for nextbus_prediction in schedule.predictions.unwrap().into_iter() {
+        let route_id = nextbus_prediction.route_tag;
+        let stop_id = nextbus_prediction.stop_tag;
+
+        let route_pred = RoutePrediction {
+            id: route_id.clone(),
+            active: false,
+            stops: Vec::new()
+        };
+
+        let stop_pred = StopPrediction {
+            id: stop_id.clone(),
+            active: false,
+            routes: Vec::new()
+        };
         
-        if let Some(d) = prediction.direction {
-            let times: Vec<f64> = d.prediction.iter().map(|x| x.epochTime).collect();
-            database.update_route_arrivals(route_id, stop_id, times);
+        let route = routes.entry(route_id.clone()).or_insert(route_pred);
+        let stop  = stops.entry(stop_id.clone()).or_insert(stop_pred);
+        
+        if let Some(direction) = nextbus_prediction.direction {
+            let arrivals: Vec<f64> = direction.prediction.iter().map(|x| x.epoch_time).collect();
+            stop.active = true;
+            route.active = true;
+            stop.routes.push(StopRoutePrediction { id: route_id.clone(), arrivals: arrivals.clone() });
+            route.stops.push(RouteStopPrediction { id: stop_id.clone(), arrivals });
         }
     }
-    println!("Lock for schedule released");
+
+    let mut database = database.write().unwrap();
+    for (id, route) in routes {
+        database.update_route_arrivals(id, route);
+    }
+
+    for (id, stop) in stops {
+        database.update_stop_arrivals(id, stop);
+    }
+
+
 }
