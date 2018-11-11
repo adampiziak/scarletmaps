@@ -8,12 +8,13 @@ pub struct Route {
 pub struct RouteStop {
     pub id: String,
     pub name: String,
+    pub campus: String,
     pub arrivals: Vec<f64>
 }
 
 impl Route {
-    pub fn new(id: String, name: String, stops: Vec<RouteStop>) -> Route {
-        Route { id, name, active: false, stops }
+    pub fn new(id: String, name: String) -> Route {
+        Route { id, name, active: false, stops: Vec::new() }
     }
 
     pub fn is_active(&self) -> bool {
@@ -26,7 +27,7 @@ impl Route {
 }
 
 impl RouteStop {
-    pub fn new(id: String, name: String) -> RouteStop {
-        RouteStop { id, name, arrivals: Vec::new() }
+    pub fn new(id: String, name: String, campus: String) -> RouteStop {
+        RouteStop { id, name, campus, arrivals: Vec::new() }
     }
 }

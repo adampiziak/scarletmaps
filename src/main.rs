@@ -1,5 +1,6 @@
 #![feature(plugin)]
 #![plugin(rocket_codegen)]
+#![plugin(phf_macros)]
 
 #[macro_use] extern crate serde_derive;
 #[macro_use] extern crate juniper;
@@ -9,12 +10,14 @@ extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
 extern crate juniper_rocket;
+extern crate phf;
+
 
 mod api;
 mod model;
 mod scheduler;
 
-use rocket::{State, Request};
+use rocket::{State};
 use rocket::response::content;
 use model::Database;
 use std::sync::{Arc, RwLock};

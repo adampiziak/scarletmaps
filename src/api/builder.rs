@@ -36,8 +36,6 @@ pub fn parse_config(database: Arc<RwLock<Database>>, config: Config) {
 
 
 pub fn parse_predictions(database: Arc<RwLock<Database>>, schedule: Schedule) {
-    let mut predictions: HashMap<(String, String), Vec<f64>> = HashMap::new();
-
     let mut routes = HashMap::new();
     let mut stops  = HashMap::new();
 
@@ -45,17 +43,8 @@ pub fn parse_predictions(database: Arc<RwLock<Database>>, schedule: Schedule) {
         let route_id = nextbus_prediction.route_tag;
         let stop_id = nextbus_prediction.stop_tag;
 
-        let route_pred = RoutePrediction {
-            id: route_id.clone(),
-            active: false,
-            stops: Vec::new()
-        };
-
-        let stop_pred = StopPrediction {
-            id: stop_id.clone(),
-            active: false,
-            routes: Vec::new()
-        };
+        let route_pred = RoutePrediction::new(route_id.clone());
+        let stop_pred = StopPrediction::new(stop_id.clone());
         
         let route = routes.entry(route_id.clone()).or_insert(route_pred);
         let stop  = stops.entry(stop_id.clone()).or_insert(stop_pred);
@@ -64,8 +53,8 @@ pub fn parse_predictions(database: Arc<RwLock<Database>>, schedule: Schedule) {
             let arrivals: Vec<f64> = direction.prediction.iter().map(|x| x.epoch_time).collect();
             stop.active = true;
             route.active = true;
-            stop.routes.push(StopRoutePrediction { id: route_id.clone(), arrivals: arrivals.clone() });
-            route.stops.push(RouteStopPrediction { id: stop_id.clone(), arrivals });
+            stop.routes.push(StopRoutePrediction { id: route_id, arrivals: arrivals.clone() });
+            route.stops.push(RouteStopPrediction { id: stop_id, arrivals });
         }
     }
 

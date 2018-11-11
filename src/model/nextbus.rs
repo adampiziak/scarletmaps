@@ -16,24 +16,12 @@ pub struct ConfigRoute {
     pub title: String,
     #[serde(deserialize_with = "map_or_seq")]
     pub stop: Vec<ConfigRouteStop>,
-    #[serde(deserialize_with = "from_str")]
-    lat_max: f64,
-    #[serde(deserialize_with = "from_str")]
-    lat_min: f64,
-    #[serde(deserialize_with = "from_str")]
-    lon_max: f64,
-    #[serde(deserialize_with = "from_str")]
-    lon_min: f64,
 }
 
 #[derive(Deserialize)]
 pub struct ConfigRouteStop {
     pub tag: String,
     pub title: String,
-    #[serde(deserialize_with = "from_str")]
-    lon: f64,
-    #[serde(deserialize_with = "from_str")]
-    lat: f64
 }
 
 
@@ -94,9 +82,10 @@ pub struct Direction {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct RouteStopTime {
     #[serde(deserialize_with = "from_str")]
-    pub epochTime: f64
+    pub epoch_time: f64
 }
 
 fn create_predictions_list<'de, D>(deserializer: D) -> Result<Vec<RouteStopTime>, D::Error>

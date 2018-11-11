@@ -1,9 +1,7 @@
 use std::error::Error;
 use serde_json;
 use reqwest;
-use std::sync::{Arc, RwLock};
 
-use model::Database;
 use model::nextbus::{ Config, Schedule };
 
 
