@@ -1,13 +1,20 @@
 use model::route::Route;
 use model::stop::Stop;
-use std::collections::HashMap;
 use model::prediction::{RoutePrediction,
                         StopPrediction};
 
+use std::sync::{Arc, RwLock};
+use std::collections::HashMap;
+
+pub type SyncedDatabase = Arc<RwLock<Database>>;
 
 pub struct Database {
     routes: HashMap<String, Route>,
-    stops: HashMap<String, Stop>
+    stops: HashMap<String, Stop>,
+}
+
+pub struct TranslocDatabase {
+
 }
 
 impl Database {
