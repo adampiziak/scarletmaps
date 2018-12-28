@@ -1,15 +1,43 @@
+// This module takes a response from Transloc or NextBus and converts it into
+// this server's model
+
 use std::sync::{Arc, RwLock};
 use std::collections::HashMap;
 
 use api::lookup;
-use model::{Database, Route, RouteStop, Stop, StopRoute};
-use model::nextbus::{Config, Schedule};
+use model::nextbus::{NextBusDatabase, Route, RouteStop, Stop, StopRoute};
+use model::nextbus_api::{Config, Schedule};
+use model::transloc::{TranslocDatabase, self};
+use model::transloc_api;
+
 use model::prediction::{RoutePrediction,
                         StopPrediction,
                         StopRoutePrediction,
                         RouteStopPrediction};
 
-pub fn parse_config(database: Arc<RwLock<Database>>, config: Config) {
+// Transloc
+pub fn update_route_list(database: Arc<RwLock<TranslocDatabase>>, routes: Vec<transloc_api::Route>) {
+    for route in routes {
+        database
+            .write()
+            .unwrap()
+            .routes
+            .entry(route.route_id.clone())
+            .or_insert(transloc::Route::new(route.route_id, route.long_name));
+    }
+}
+
+pub fn update_stop_list(database: Arc<RwLock<TranslocDatabase>>, stops: Vec<transloc_api::Stop>) {
+    let mut db = database.write().unwrap();
+    for stop in stops {
+        db.stops.entry(stop.stop_id.clone())
+            .or_insert(transloc::Stop::new(stop.stop_id, stop.name));
+    }
+}
+
+
+// Nextbus
+pub fn parse_config(database: Arc<RwLock<NextBusDatabase>>, config: Config) {
     let mut routes = HashMap::new();
     let mut stops = HashMap::new();
     
@@ -35,7 +63,7 @@ pub fn parse_config(database: Arc<RwLock<Database>>, config: Config) {
 }
 
 
-pub fn parse_predictions(database: Arc<RwLock<Database>>, schedule: Schedule) {
+pub fn parse_predictions(database: Arc<RwLock<NextBusDatabase>>, schedule: Schedule) {
     let mut routes = HashMap::new();
     let mut stops  = HashMap::new();
 

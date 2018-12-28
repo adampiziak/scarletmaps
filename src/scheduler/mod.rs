@@ -2,19 +2,19 @@ use std::thread;
 use std::time::Duration;
 use std::sync::{Arc, RwLock};
 
-use reqwest::Client;
-use model::database::{Database, SyncedDatabase};
-use api;
+use model::nextbus::{NextBusDatabase};
+use model::transloc::{TranslocDatabase};
 
 mod tasks;
 
-pub fn start(database: Arc<RwLock<Database>>) {
-    gather_transloc_metadata(Arc::clone(&database));
-    start_config_updater(Arc::clone(&database));
-    start_prediction_updater(Arc::clone(&database));
+pub fn start(nextbus_db: Arc<RwLock<NextBusDatabase>>, transloc_db: Arc<RwLock<TranslocDatabase>> ) {
+    gather_transloc_metadata(Arc::clone(&transloc_db));
+
+    start_config_updater(Arc::clone(&nextbus_db));
+    start_prediction_updater(Arc::clone(&nextbus_db));
 }
 
-fn gather_transloc_metadata(database: SyncedDatabase) {
+fn gather_transloc_metadata(database: Arc<RwLock<TranslocDatabase>>) {
     thread::spawn(move || {
         loop {
             tasks::update_routes_via_transloc(Arc::clone(&database));
@@ -24,7 +24,7 @@ fn gather_transloc_metadata(database: SyncedDatabase) {
     });
 }
 
-fn start_config_updater(database: Arc<RwLock<Database>>) {
+fn start_config_updater(database: Arc<RwLock<NextBusDatabase>>) {
     thread::spawn(move || {
         loop {
             tasks::update_route_config(Arc::clone(&database)).unwrap();
@@ -33,7 +33,7 @@ fn start_config_updater(database: Arc<RwLock<Database>>) {
     });
 }
 
-fn start_prediction_updater(database: Arc<RwLock<Database>>) {
+fn start_prediction_updater(database: Arc<RwLock<NextBusDatabase>>) {
     thread::spawn(move || {
         thread::sleep(Duration::from_secs(2));
         loop {

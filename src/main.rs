@@ -12,18 +12,19 @@ extern crate serde_json;
 extern crate juniper_rocket;
 extern crate phf;
 
-
 mod api;
 mod model;
 mod scheduler;
 
 use rocket::{State};
 use rocket::response::content;
-use model::Database;
+use model::nextbus::NextBusDatabase;
+use model::transloc::TranslocDatabase;
 use std::sync::{Arc, RwLock};
 use juniper::{EmptyMutation, RootNode};
 
-type Schema = RootNode<'static, Database, EmptyMutation<Database>>;
+type NextBusSchema = RootNode<'static, NextBusDatabase, EmptyMutation<NextBusDatabase>>;
+type TranslocSchema = RootNode<'static, TranslocDatabase, EmptyMutation<TranslocDatabase>>;
 
 #[get("/")]
 fn graphiql() -> content::Html<String> {
@@ -31,30 +32,40 @@ fn graphiql() -> content::Html<String> {
 }
 
 #[get("/graphql?<request>")]
-fn graphql(context: State<Arc<RwLock<Database>>>,
+fn graphql(context: State<Arc<RwLock<TranslocDatabase>>>,
            request: juniper_rocket::GraphQLRequest,
-           schema: State<Schema>
+           schema: State<TranslocSchema>
 ) -> juniper_rocket::GraphQLResponse {
     request.execute(&schema, &context.read().unwrap())
 }
 
 #[post("/graphql", data = "<request>")]
-fn post_graphql(context: State<Arc<RwLock<Database>>>,
+fn post_graphql(context: State<Arc<RwLock<TranslocDatabase>>>,
                 request: juniper_rocket::GraphQLRequest,
-                schema: State<Schema>)
+                schema: State<TranslocSchema>)
                 -> juniper_rocket::GraphQLResponse {
     request.execute(&schema, &context.read().unwrap())
 }
 
 fn main() {
-    let database = Arc::new(RwLock::new(Database::new()));
-    scheduler::start(Arc::clone(&database));
+    
+    // Create Databases
+    let nextbus_database = Arc::new(RwLock::new(NextBusDatabase::new()));
+    let transloc_database = Arc::new(RwLock::new(TranslocDatabase::new()));
+
+    // Start Schedulers (Talk to nextbus and transloc servers)...
+    scheduler::start(Arc::clone(&nextbus_database), Arc::clone(&transloc_database));
     rocket::ignite()
         .mount("/", routes![post_graphql, graphiql, graphql])
-        .manage(Arc::clone(&database))
-        .manage(Schema::new(
-            Database::new(),
-            EmptyMutation::<Database>::new(),
+        .manage(Arc::clone(&nextbus_database))
+        .manage(Arc::clone(&transloc_database))
+        .manage(NextBusSchema::new(
+            NextBusDatabase::new(),
+            EmptyMutation::<NextBusDatabase>::new(),
+        ))
+        .manage(TranslocSchema::new(
+            TranslocDatabase::new(),
+            EmptyMutation::<TranslocDatabase>::new(),
         ))
         .launch();
 }

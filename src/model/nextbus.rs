@@ -1,117 +1,136 @@
-use std::fmt;
-use std::fmt::Display;
-use std::str::FromStr;
+use model::prediction::{RoutePrediction,
+                        StopPrediction};
 
-use serde::de::{self, Deserialize, Deserializer};
+use std::collections::HashMap;
 
-#[derive(Deserialize)]
-pub struct Config {
-    pub route: Vec<ConfigRoute>,
+pub struct Route {
+    pub id: String,
+    pub name: String,
+    pub active: bool,
+    pub stops: Vec<RouteStop>
 }
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ConfigRoute {
-    pub tag: String,
-    pub title: String,
-    #[serde(deserialize_with = "map_or_seq")]
-    pub stop: Vec<ConfigRouteStop>,
+pub struct RouteStop {
+    pub id: String,
+    pub name: String,
+    pub campus: String,
+    pub arrivals: Vec<f64>
 }
 
-#[derive(Deserialize)]
-pub struct ConfigRouteStop {
-    pub tag: String,
-    pub title: String,
+impl Route {
+    pub fn new(id: String, name: String) -> Route {
+        Route { id, name, active: false, stops: Vec::new() }
+    }
+
+    pub fn is_active(&self) -> bool {
+        self.active
+    }
+
+    pub fn update_arrivals(&mut self, stop_id: String, times: Vec<f64>) {
+        self.stops.iter_mut().find(|ref mut x| x.id == stop_id).unwrap().arrivals = times;
+    }
+}
+
+impl RouteStop {
+    pub fn new(id: String, name: String, campus: String) -> RouteStop {
+        RouteStop { id, name, campus, arrivals: Vec::new() }
+    }
 }
 
 
-fn from_str<'de, T, D>(deserializer: D) -> Result<T, D::Error>
-    where T: FromStr,
-          T::Err: Display,
-          D: Deserializer<'de>
-{
-    let s = String::deserialize(deserializer)?;
-    T::from_str(&s).map_err(de::Error::custom)
+pub struct Stop {
+    pub id: String,
+    pub name: String,
+    pub active: bool,
+    pub campus: String,
+    pub routes: Vec<StopRoute>
 }
 
-fn map_or_seq<'de, D>(deserializer: D) -> Result<Vec<ConfigRouteStop>, D::Error>
-    where D: Deserializer<'de>
-{
-    struct Stops;
+pub struct StopRoute {
+    pub id: String,
+    pub name: String,
+    pub arrivals: Vec<f64>
+}
 
-    impl<'de> de::Visitor<'de> for Stops {
-        type Value = Vec<ConfigRouteStop>;
-        fn visit_map<A>(self, map: A) -> Result<Vec<ConfigRouteStop>, A::Error>
-            where A: de::MapAccess<'de>
-        {
-            Ok(vec![Deserialize::deserialize(de::value::MapAccessDeserializer::new(map)).unwrap()])
-        }
+impl Stop {
+    pub fn new(id: String, name: String, campus: String) -> Stop {
+        Stop { id, name, active: false, campus, routes: Vec::new() }
+    }
 
-        fn visit_seq<A>(self, visitor: A) -> Result<Vec<ConfigRouteStop>, A::Error>
-            where A: de::SeqAccess<'de>
-        {
-            Deserialize::deserialize(de::value::SeqAccessDeserializer::new(visitor))
-        }
+    pub fn is_active(&self) -> bool {
+        self.active
+    }
 
-        // ERROR
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("stop or list of stops")
+    pub fn update_arrivals(&mut self, route_id: String, times: Vec<f64>) {
+        self.routes.iter_mut().find(|ref mut x| x.id == route_id).unwrap().arrivals = times;
+    }
+}
+
+impl StopRoute {
+    pub fn new(id: String, name: String) -> StopRoute {
+        StopRoute { id, name, arrivals: Vec::new() }
+    }
+}
+
+pub struct NextBusDatabase {
+    routes: HashMap<String, Route>,
+    stops: HashMap<String, Stop>
+}
+
+impl NextBusDatabase {
+    pub fn new() -> NextBusDatabase {
+        NextBusDatabase {
+            routes: HashMap::new(),
+            stops: HashMap::new()
         }
     }
 
-    deserializer.deserialize_any(Stops)
-}
+    pub fn add_route(&mut self, route: Route) {
+        self.routes.entry(route.id.clone()).or_insert(route);
+    }
 
-#[derive(Deserialize)]
-pub struct Schedule {
-    pub predictions: Option<Vec<Prediction>>
-}
+    pub fn add_stop(&mut self, stop: Stop) {
+        self.stops.entry(stop.id.clone()).or_insert(stop);
+    }
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Prediction {
-    pub route_tag: String,
-    pub stop_tag: String,
-    pub direction: Option<Direction>
-}
+    pub fn get_route(&self, id: &str) -> Option<&Route> {
+        self.routes.get(id)
+    }
 
-#[derive(Deserialize)]
-pub struct Direction {
-    #[serde(deserialize_with = "create_predictions_list")]
-    pub prediction: Vec<RouteStopTime>
-}
+    pub fn get_stop(&self, id: &str) -> Option<&Stop> {
+        self.stops.get(id)
+    }
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RouteStopTime {
-    #[serde(deserialize_with = "from_str")]
-    pub epoch_time: f64
-}
+    pub fn get_stops(&self) -> Vec<&Stop> {
+        let mut stops: Vec<&Stop> = self.stops.iter().map(|(_, stop)| stop).collect();
+        stops.sort_by(|a, b| a.name.cmp(&b.name));
+        stops
+    }
 
-fn create_predictions_list<'de, D>(deserializer: D) -> Result<Vec<RouteStopTime>, D::Error>
-    where D: Deserializer<'de>
-{
-    struct Stops;
+    // Return a vector of routes
+    pub fn get_all(&self) -> Vec<&Route> {
+        self.routes.iter().map(|(_, route)| route).collect()
+    }
 
-    impl<'de> de::Visitor<'de> for Stops {
-        type Value = Vec<RouteStopTime>;
-        fn visit_map<A>(self, map: A) -> Result<Vec<RouteStopTime>, A::Error>
-            where A: de::MapAccess<'de>
-        {
-            Ok(vec![Deserialize::deserialize(de::value::MapAccessDeserializer::new(map)).unwrap()])
-        }
-
-        fn visit_seq<A>(self, visitor: A) -> Result<Vec<RouteStopTime>, A::Error>
-            where A: de::SeqAccess<'de>
-        {
-            Deserialize::deserialize(de::value::SeqAccessDeserializer::new(visitor))
-        }
-
-        // ERROR
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("stop or list of stops")
+    pub fn update_route_arrivals(&mut self, route_id: String, prediction: RoutePrediction) {
+        // Update route
+        if let Some(route) = self.routes.get_mut(&route_id) {
+            route.active = prediction.active;
+            for stop in prediction.stops {
+                route.update_arrivals(stop.id, stop.arrivals);
+            }
         }
     }
 
-    deserializer.deserialize_any(Stops)
+    pub fn update_stop_arrivals(&mut self, stop_id: String, prediction: StopPrediction) {
+        // Update stop
+        if let Some(stop) = self.stops.get_mut(&stop_id) {
+            stop.active = prediction.active;
+            for route in prediction.routes {
+                stop.update_arrivals(route.id, route.arrivals);
+            }
+        }
+    }
 }
+
+

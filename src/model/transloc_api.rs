@@ -16,9 +16,9 @@ pub struct Agency {
 #[derive(Deserialize)]
 pub struct Route {
     #[serde(deserialize_with = "from_str")]
-    route_id: i32,
-    is_active: bool,
+    pub route_id: i32,
     pub long_name: String,
+    pub stops: Vec<String>
 }
 
 #[derive(Deserialize)]
@@ -30,7 +30,7 @@ pub struct Stops {
 #[derive(Deserialize)]
 pub struct Stop {
     #[serde(deserialize_with = "from_str")]
-    stop_id: i32,
+    pub stop_id: i32,
     pub name: String
 }
 
