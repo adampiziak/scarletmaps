@@ -31,7 +31,8 @@ pub struct Stops {
 pub struct Stop {
     #[serde(deserialize_with = "from_str")]
     pub stop_id: i32,
-    pub name: String
+    pub name: String,
+    pub routes: Vec<String>
 }
 
 fn from_str<'de, T, D>(deserializer: D) -> Result<T, D::Error>

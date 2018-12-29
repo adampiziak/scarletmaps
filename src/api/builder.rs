@@ -17,13 +17,10 @@ use model::prediction::{RoutePrediction,
 
 // Transloc
 pub fn update_route_list(database: Arc<RwLock<TranslocDatabase>>, routes: Vec<transloc_api::Route>) {
+    let mut db = database.write().unwrap();
     for route in routes {
-        database
-            .write()
-            .unwrap()
-            .routes
-            .entry(route.route_id.clone())
-            .or_insert(transloc::Route::new(route.route_id, route.long_name));
+        db.routes.entry(route.route_id.clone())
+            .or_insert(transloc::Route::new(route.route_id, route.long_name, route.stops));
     }
 }
 
@@ -31,7 +28,7 @@ pub fn update_stop_list(database: Arc<RwLock<TranslocDatabase>>, stops: Vec<tran
     let mut db = database.write().unwrap();
     for stop in stops {
         db.stops.entry(stop.stop_id.clone())
-            .or_insert(transloc::Stop::new(stop.stop_id, stop.name));
+            .or_insert(transloc::Stop::new(stop.stop_id, stop.name, stop.routes));
     }
 }
 

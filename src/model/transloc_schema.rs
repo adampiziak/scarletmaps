@@ -31,6 +31,10 @@ graphql_object!(Route: TranslocDatabase |&self| {
     field name() -> &String {
         &self.name
     }
+
+    field stops(&executor) -> Vec<&Stop> {
+        executor.context().get_stops_by_ids(&self.served_stops)
+    }
 });
 
 graphql_object!(Stop: TranslocDatabase |&self| {
@@ -40,5 +44,9 @@ graphql_object!(Stop: TranslocDatabase |&self| {
 
     field name() -> &String {
         &self.name
+    }
+
+    field routes(&executor) -> Vec<&Route> {
+        executor.context().get_routes_by_ids(&self.served_routes)
     }
 });
