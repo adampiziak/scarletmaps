@@ -35,6 +35,27 @@ pub struct Stop {
     pub routes: Vec<String>
 }
 
+#[derive(Deserialize)]
+pub struct ArrivalEstimates {
+    pub data: Vec<StopArrivals>
+}
+
+#[derive(Deserialize)]
+pub struct StopArrivals {
+    pub arrivals: Vec<Arrival>,
+    #[serde(deserialize_with = "from_str")]
+    pub stop_id: i32
+}
+
+#[derive(Deserialize)]
+pub struct Arrival {
+    #[serde(deserialize_with = "from_str")]
+    pub route_id: i32,
+    #[serde(deserialize_with = "from_str")]
+    pub vehicle_id: i32,
+    pub arrival_at: String,
+}
+
 fn from_str<'de, T, D>(deserializer: D) -> Result<T, D::Error>
     where T: FromStr,
           T::Err: Display,

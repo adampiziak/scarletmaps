@@ -3,6 +3,7 @@
 
 use std::sync::{Arc, RwLock};
 use std::collections::HashMap;
+use chrono::{DateTime};
 
 use api::lookup;
 use model::nextbus::{NextBusDatabase, Route, RouteStop, Stop, StopRoute};
@@ -30,6 +31,20 @@ pub fn update_stop_list(database: Arc<RwLock<TranslocDatabase>>, stops: Vec<tran
         db.stops.entry(stop.stop_id.clone())
             .or_insert(transloc::Stop::new(stop.stop_id, stop.name, stop.routes));
     }
+}
+
+pub fn update_arrival_estimates(database: Arc<RwLock<TranslocDatabase>>,
+                                estimates: transloc_api::ArrivalEstimates) {
+    let mut db = database.write().unwrap();
+    db.arrivals.clear();
+    for stop in estimates.data {
+        for route in stop.arrivals {
+            let time = DateTime::parse_from_rfc3339(&route.arrival_at).unwrap().timestamp_millis() as f64;
+            let mut times = db.arrivals.entry((route.route_id, stop.stop_id)).or_insert(Vec::new());
+            times.push(time);
+        }
+    }
+    
 }
 
 

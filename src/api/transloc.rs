@@ -7,7 +7,7 @@ use std::error::Error;
 use reqwest::Client;
 use reqwest::header::{self, HeaderValue};
 
-use model::transloc_api::{Routes, Route, Stops, Stop};
+use model::transloc_api::{Routes, Route, Stops, Stop, ArrivalEstimates, StopArrivals, Arrival};
 
 pub fn fetch_routes() -> Result<Vec<Route>, Box<Error>> {
     let client = get_client();
@@ -19,6 +19,17 @@ pub fn fetch_routes() -> Result<Vec<Route>, Box<Error>> {
     let transloc_routes: Routes = serde_json::from_str(&res)?;
     
     Ok(transloc_routes.data.routes)
+}
+
+pub fn fetch_arrival_estimates() -> Result<ArrivalEstimates, Box<Error>> {
+    let client = get_client();
+    let res = client
+        .get("https://transloc-api-1-2.p.mashape.com/arrival-estimates.json?agencies=1323&callback=call")
+        .send()?
+        .text()?;
+
+    let transloc_arrival_estimates: ArrivalEstimates = serde_json::from_str(&res)?;
+    Ok(transloc_arrival_estimates)
 }
 
 pub fn fetch_stops() -> Result<Vec<Stop>, Box<Error>> {

@@ -45,3 +45,8 @@ pub fn update_stops_via_transloc(transloc_db: Arc<RwLock<TranslocDatabase>>) {
     let stops = transloc::fetch_stops().unwrap();
     builder::update_stop_list(transloc_db, stops);
 }
+
+pub fn update_arrival_estimates(transloc_db: Arc<RwLock<TranslocDatabase>>) {
+    let estimates = transloc::fetch_arrival_estimates().unwrap();
+    builder::update_arrival_estimates(transloc_db, estimates);
+}

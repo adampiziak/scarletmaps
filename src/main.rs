@@ -11,6 +11,7 @@ extern crate serde;
 extern crate serde_json;
 extern crate juniper_rocket;
 extern crate phf;
+extern crate chrono;
 
 mod api;
 mod model;
