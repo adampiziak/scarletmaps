@@ -32,7 +32,14 @@ pub struct Stop {
     #[serde(deserialize_with = "from_str")]
     pub stop_id: i32,
     pub name: String,
-    pub routes: Vec<String>
+    pub routes: Vec<String>,
+    pub location: StopLocation
+}
+
+#[derive(Deserialize)]
+pub struct StopLocation {
+    pub lat: f64,
+    pub lng: f64
 }
 
 #[derive(Deserialize)]

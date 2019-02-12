@@ -50,3 +50,22 @@ pub fn update_arrival_estimates(transloc_db: Arc<RwLock<TranslocDatabase>>) {
     let estimates = transloc::fetch_arrival_estimates().unwrap();
     builder::update_arrival_estimates(transloc_db, estimates);
 }
+
+pub fn update_segments(transloc_db: Arc<RwLock<TranslocDatabase>>) {
+    let mut db = transloc_db.write().unwrap();
+    let mut ids = Vec::new();
+    {
+        let routes = db.get_routes();
+
+        for route in routes {
+            ids.push(route.id);
+        }
+    }
+
+    for id in ids {
+        let segments = transloc::fetch_segments(id).unwrap();
+        if let Some(r) = db.routes.get_mut(&id) {
+            r.segments = segments;
+        }
+    }
+}

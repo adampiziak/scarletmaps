@@ -11,6 +11,7 @@ pub fn start(nextbus_db: Arc<RwLock<NextBusDatabase>>, transloc_db: Arc<RwLock<T
     gather_transloc_metadata(Arc::clone(&transloc_db));
     poll_transloc_arrivals(Arc::clone(&transloc_db));
 
+    gather_transloc_segments(Arc::clone(&transloc_db));
     start_config_updater(Arc::clone(&nextbus_db));
     start_prediction_updater(Arc::clone(&nextbus_db));
 }
@@ -19,7 +20,18 @@ fn poll_transloc_arrivals(database: Arc<RwLock<TranslocDatabase>>) {
     thread::spawn(move || {
         loop {
             tasks::update_arrival_estimates(Arc::clone(&database));
-            thread::sleep(Duration::from_secs(30*5));
+            thread::sleep(Duration::from_secs(30));
+        }
+    });
+}
+
+fn gather_transloc_segments(database: Arc<RwLock<TranslocDatabase>>) {
+   thread::spawn(move || {
+       thread::sleep(Duration::from_secs(5));
+       tasks::update_segments(Arc::clone(&database));
+       loop {
+            tasks::update_segments(Arc::clone(&database));
+            thread::sleep(Duration::from_secs(60*10));
         }
     });
 }

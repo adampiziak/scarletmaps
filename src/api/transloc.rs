@@ -2,10 +2,14 @@
 // Rutgers University ID: 1323
 
 use std::fs;
+use serde_json::Value;
 use serde_json;
 use std::error::Error;
 use reqwest::Client;
 use reqwest::header::{self, HeaderValue};
+use std::collections::HashMap;
+use polyline;
+
 
 use model::transloc_api::{Routes, Route, Stops, Stop, ArrivalEstimates, StopArrivals, Arrival};
 
@@ -54,6 +58,37 @@ pub fn get_client() -> Client {
         .default_headers(headers)
         .build().unwrap();
 
-
     client
+}
+
+#[derive(Deserialize)]
+struct Segments {
+    data: HashMap<String, String>
+}
+
+// 4012616
+pub fn fetch_segments(route_id: i32) -> Result<Vec<Vec<Vec<f64>>>, Box<Error>>{
+    let client = get_client();
+    let url = format!(
+        "https://transloc-api-1-2.p.mashape.com/segments.json?agencies=1323&callback=call&routes={}",
+        route_id
+    );
+    let res = client
+        .get(&url)
+        .send().unwrap()
+        .text().unwrap();
+
+    let m: Segments = serde_json::from_str(&res).unwrap();
+
+    let mut segments = Vec::new();
+    for (key, value) in m.data {
+        let polyline = polyline::decode_polyline(&value, 5)
+            .unwrap()
+            .into_iter()
+            .map(|a| a.to_vec())
+            .collect();
+        segments.push(polyline);
+    }
+
+    Ok(segments)
 }

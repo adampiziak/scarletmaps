@@ -29,7 +29,10 @@ pub fn update_stop_list(database: Arc<RwLock<TranslocDatabase>>, stops: Vec<tran
     let mut db = database.write().unwrap();
     for stop in stops {
         db.stops.entry(stop.stop_id.clone())
-            .or_insert(transloc::Stop::new(stop.stop_id, stop.name, stop.routes));
+            .or_insert(transloc::Stop::new(stop.stop_id,
+                                           stop.name,
+                                           stop.routes,
+                                           (stop.location.lat, stop.location.lng)));
     }
 }
 
@@ -56,7 +59,7 @@ pub fn parse_config(database: Arc<RwLock<NextBusDatabase>>, config: Config) {
     for r in config.route.into_iter() {
         let route = routes.entry(r.tag.clone()).or_insert(Route::new(r.tag.clone(), r.title.clone()));
         for s in r.stop.into_iter() {
-            let stop_campus = lookup::stop_campus(&s.tag);
+            let stop_campus = "unknown".to_string();
             let stop = stops.entry(s.tag.clone())
                 .or_insert(Stop::new(s.tag.clone(), s.title.clone(), stop_campus.clone()));
             stop.routes.push(StopRoute::new(r.tag.clone(), r.title.clone()));

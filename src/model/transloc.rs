@@ -21,7 +21,9 @@ impl TranslocDatabase {
     }
 
     pub fn get_routes(&self) -> Vec<&Route> {
-        self.routes.iter().map(|(_, route)| route).collect()
+        let mut routes: Vec<&Route> = self.routes.iter().map(|(_, route)| route).collect();
+        routes.sort_by_key(|&s| &s.name);
+        routes
     }
 
     pub fn get_stop(&self, id: &i32) -> Option<&Stop> {
@@ -29,7 +31,10 @@ impl TranslocDatabase {
     }
 
     pub fn get_stops(&self) -> Vec<&Stop> {
-        self.stops.iter().map(|(_, stop)| stop).collect()
+        let mut stops: Vec<&Stop> = self.stops.iter().map(|(_, stop)| stop).collect();
+        stops.sort_by_key(|&s| &s.name);
+        stops
+            
     }
 
     pub fn get_stops_by_ids(&self, ids: &Vec<i32>) -> Vec<&Stop> {
@@ -50,7 +55,27 @@ impl TranslocDatabase {
         routes
     }
 
-    
+    pub fn route_status(&self, route: &Route) -> bool {
+        for &stop in &route.served_stops {
+                match self.arrivals.get(&(route.id, stop)) {
+                    Some(times) => return times.len() > 0,
+                    None => continue
+                };
+        }
+
+        false
+    }
+
+    pub fn stop_status(&self, stop: &Stop) -> bool {
+        for &route_id in &stop.served_routes {
+                match self.arrivals.get(&(route_id, stop.id)) {
+                    Some(times) => return times.len() > 0,
+                    None => continue
+                };
+        }
+
+        false
+    }
 }
 
 pub struct Route {
@@ -58,11 +83,13 @@ pub struct Route {
     pub name: String,
     pub area_ids: Vec<i32>,
     pub served_stops: Vec<i32>,     // IDs of stops served
+    pub segments: Vec<Vec<Vec<f64>>>
 }
 
 pub struct Stop {
     pub id: i32,
     pub name: String,
+    pub location: (f64, f64),
     pub area_id: i32,
     pub served_routes: Vec<i32>,   // IDs of routes served
 }
@@ -76,17 +103,19 @@ impl Route {
             name,
             area_ids: Vec::new(),
             served_stops: stop_ids,
+            segments: Vec::new()
         }
     }
 
 }
 
 impl Stop {
-    pub fn new(id: i32, name: String, route_str_ids: Vec<String>) -> Stop {
+    pub fn new(id: i32, name: String, route_str_ids: Vec<String>, location: (f64, f64)) -> Stop {
         let route_ids = route_str_ids.into_iter().map(|x| x.parse::<i32>().unwrap()).collect();
         Stop {
             id,
             name,
+            location,
             area_id: 0,
             served_routes: route_ids,
         }

@@ -1,5 +1,6 @@
 use juniper::Context;
 use model::transloc::{TranslocDatabase, Route, Stop};
+use api::lookup;
 
 impl Context for TranslocDatabase {}
 
@@ -17,17 +18,37 @@ graphql_object!(TranslocDatabase: TranslocDatabase as "Query" |&self| {
         } 
     }
 
-    field routes(&executor) -> Vec<RoutePair> {
-        let routes = executor.context().get_routes();
-        routes.into_iter().map(|r| RoutePair(r, 0)).collect()
+    field routes(&executor, active: Option<bool>) -> Vec<RoutePair> {
+        let db = executor.context();
+        let routes_iter = db.get_routes().into_iter();
+        match active {
+            Some(a) => routes_iter
+                .filter(|r| db.route_status(&r) == a)
+                .map(|r| RoutePair(r, 0))
+                .collect(),
+            None => routes_iter.map(|r| RoutePair(r, 0)).collect()
+        }
+            
     }
 
-    field stop(&executor, id: i32 as "stop id (required)") -> Option<&Stop> {
-        executor.context().get_stop(&id)
+    field stop(&executor, id: i32 as "stop id (required)") -> Option<StopPair> {
+        let stop = executor.context().get_stop(&id);
+        match stop {
+            Some(r) => Some(StopPair(r, 0)),
+            None => None
+        } 
     }
 
-    field stops(&executor) -> Vec<&Stop> {
-        executor.context().get_stops()
+    field stops(&executor, active: Option<bool>) -> Vec<StopPair> {
+        let db = executor.context();
+        let stops_iter = db.get_stops().into_iter();
+        match active {
+            Some(a) => stops_iter
+                .filter(|s| db.stop_status(&s) == a)
+                .map(|s| StopPair(s, 0))
+                .collect(),
+            None => stops_iter.map(|s| StopPair(s, 0)).collect()
+        }
     }
 });
 
@@ -41,14 +62,27 @@ graphql_object!(<'a> RoutePair<'a>: TranslocDatabase as "RoutePair" |&self| {
         &self.0.name
     }
 
-    field stops(&executor) -> Vec<StopPair> {
-        let stops = executor.context().get_stops_by_ids(&self.0.served_stops);
-        stops.into_iter().map(|s| StopPair(s, self.0.id)).collect()
+    
+    field stops(&executor, active: Option<bool>) -> Vec<StopPair> {
+        let db = executor.context();
+        let stops_iter = db.get_stops_by_ids(&self.0.served_stops).into_iter();
+        match active {
+            Some(a) => stops_iter
+                .filter(|r| db.stop_status(&r) == a)
+                .map(|r| StopPair(r, self.0.id))
+                .collect(),
+            None => stops_iter.map(|r| StopPair(r, self.0.id)).collect()
+        }
     }
 
     field arrivals(&executor) -> Option<&Vec<f64>> {
         executor.context().arrivals.get(&(self.0.id, self.1))
     }
+
+    field segments() -> &Vec<Vec<Vec<f64>>> {
+        &self.0.segments
+    }
+    
 });
 
 graphql_object!(<'a> StopPair<'a>: TranslocDatabase as "StopPair" |&self| {
@@ -60,9 +94,24 @@ graphql_object!(<'a> StopPair<'a>: TranslocDatabase as "StopPair" |&self| {
         &self.0.name
     }
 
-    field routes(&executor) -> Vec<RoutePair> {
-        let routes = executor.context().get_routes_by_ids(&self.0.served_routes);
-        routes.into_iter().map(|r| RoutePair(r, self.0.id)).collect()
+    field location() -> Vec<f64> {
+        vec![self.0.location.1, self.0.location.0]
+    }
+
+    field area() -> String {
+        lookup::get_stop_area(&self.0.id)
+    }
+
+    field routes(&executor, active: Option<bool>) -> Vec<RoutePair> {
+        let db = executor.context();
+        let routes_iter = db.get_routes_by_ids(&self.0.served_routes).into_iter();
+        match active {
+            Some(a) => routes_iter
+                .filter(|r| db.route_status(&r) == a)
+                .map(|r| RoutePair(r, self.0.id))
+                .collect(),
+            None => routes_iter.map(|r| RoutePair(r, self.0.id)).collect()
+        }
     }
 
     field arrivals(&executor) -> Option<&Vec<f64>> {
