@@ -31,6 +31,11 @@ type NextBusSchema = RootNode<'static, NextBusDatabase, EmptyMutation<NextBusDat
 type TranslocSchema = RootNode<'static, TranslocDatabase, EmptyMutation<TranslocDatabase>>;
 
 #[get("/")]
+fn root() -> &'static str {
+    "OK"
+}
+
+#[get("/graphql")]
 fn graphiql() -> content::Html<String> {
     juniper_rocket::graphiql_source("/graphql")
 }
@@ -90,7 +95,7 @@ fn main() {
     // Start Schedulers (Talk to nextbus and transloc servers)...
     scheduler::start(Arc::clone(&nextbus_database), Arc::clone(&transloc_database));
     rocket::ignite()
-        .mount("/", routes![post_graphql, graphiql, graphql, options_graphql])
+        .mount("/", routes![root, post_graphql, graphiql, graphql, options_graphql])
         .attach(CORS())
         .manage(Arc::clone(&nextbus_database))
         .manage(Arc::clone(&transloc_database))
