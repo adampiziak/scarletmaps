@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use model::transloc_api;
 
 pub struct TranslocDatabase {
     pub routes: HashMap<i32, Route>,

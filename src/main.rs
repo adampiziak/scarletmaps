@@ -1,18 +1,15 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
-#![feature(plugin)]
-#![plugin(phf_macros)]
-
 #[macro_use] extern crate serde_derive;
 #[macro_use] extern crate juniper;
 #[macro_use] extern crate rocket;
 #[macro_use] extern crate rocket_cors;
+#[macro_use] extern crate phf;
 
 extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
 extern crate juniper_rocket;
-extern crate phf;
 extern crate chrono;
 extern crate polyline;
 

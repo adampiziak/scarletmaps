@@ -1,4 +1,5 @@
-use phf;
+#![feature(proc_macro_hygiene)]
+use phf::phf_map;
 
 static BUSCH: &'static str = "Busch";
 static COLLEGE_AVE: &'static str = "College Ave";
@@ -82,7 +83,7 @@ pub fn get_route_areas(ids: &Vec<i32>) -> Vec<String> {
     let mut areas = Vec::new();
     for id in ids {
         let area = get_stop_area(&id);
-        if (area == "unknown") {
+        if area == "unknown" {
             continue;
         }
 
