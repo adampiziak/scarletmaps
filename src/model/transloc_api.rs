@@ -72,3 +72,8 @@ fn from_str<'de, T, D>(deserializer: D) -> Result<T, D::Error>
     T::from_str(&s).map_err(de::Error::custom)
 }
 
+#[derive(Deserialize)]
+pub struct VehicleLocationResponse {
+    #[serde(rename="1323")]
+    pub vehicles: Vec<Route>,
+}

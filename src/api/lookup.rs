@@ -72,11 +72,23 @@ static STOP_INFO: phf::Map<i32, (&'static str, &'static str)> = phf_map! {
     4229516i32 => ("library_of_science", BUSCH),
     4229596i32 => ("lipman_hall", COOK_DOUGLAS),
     4230628i32 => ("livingston_health_center", LIVINGSTON),
-    
-    
-    
 };
 
 pub fn get_stop_area(id: &i32) -> String {
     STOP_INFO.get(id).unwrap_or(&("", "unknown")).1.to_string()
+}
+
+pub fn get_route_areas(ids: &Vec<i32>) -> Vec<String> {
+    let mut areas = Vec::new();
+    for id in ids {
+        let area = get_stop_area(&id);
+        if (area == "unknown") {
+            continue;
+        }
+
+        if !areas.contains(&area) {
+            areas.push(area);
+        }
+    }
+    areas
 }

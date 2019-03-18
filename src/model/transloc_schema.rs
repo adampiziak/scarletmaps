@@ -82,6 +82,10 @@ graphql_object!(<'a> RoutePair<'a>: TranslocDatabase as "RoutePair" |&self| {
     field segments() -> &Vec<Vec<Vec<f64>>> {
         &self.0.segments
     }
+
+    field areas() -> Vec<String> {
+        lookup::get_route_areas(&self.0.served_stops)
+    }
     
 });
 
