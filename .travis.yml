@@ -2,10 +2,10 @@ language: rust
 rust:
   - nightly
 
-cache: cargo
-
 addons:
   ssh_known_hosts: scarletbus.com
+
+cache: cargo
 
 before_install:
   - openssl aes-256-cbc -K $encrypted_70ba39ff6889_key -iv $encrypted_70ba39ff6889_iv -in travis_rsa.enc -out travis_rsa -d
