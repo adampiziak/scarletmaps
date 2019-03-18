@@ -61,30 +61,6 @@ fn post_graphql(context: State<Arc<RwLock<TranslocDatabase>>>,
     request.execute(&schema, &context.read().unwrap())
 }
 
-/*
-
-#[get("/graphql?<request>")]
-fn graphql(context: State<Arc<RwLock<NextBusDatabase>>>,
-           request: juniper_rocket::GraphQLRequest,
-           schema: State<NextBusSchema>
-) -> juniper_rocket::GraphQLResponse {
-    request.execute(&schema, &context.read().unwrap())
-}
-
-#[options("/graphql")]
-fn options_graphql() -> Status {
-    Status::Ok
-}
-
-#[post("/graphql", data = "<request>")]
-fn post_graphql(context: State<Arc<RwLock<NextBusDatabase>>>,
-                request: juniper_rocket::GraphQLRequest,
-                schema: State<NextBusSchema>)
-                -> juniper_rocket::GraphQLResponse {
-    request.execute(&schema, &context.read().unwrap())
-}
-*/
-
 fn main() {
     
     // Create Databases
