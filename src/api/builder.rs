@@ -1,22 +1,65 @@
+// This module takes a response from Transloc or NextBus and converts it into
+// this server's model
+
 use std::sync::{Arc, RwLock};
 use std::collections::HashMap;
+use chrono::{DateTime};
 
 use api::lookup;
-use model::{Database, Route, RouteStop, Stop, StopRoute};
-use model::nextbus::{Config, Schedule};
+use model::nextbus::{NextBusDatabase, Route, RouteStop, Stop, StopRoute};
+use model::nextbus_api::{Config, Schedule};
+use model::transloc::{TranslocDatabase, self};
+use model::transloc_api;
+
 use model::prediction::{RoutePrediction,
                         StopPrediction,
                         StopRoutePrediction,
                         RouteStopPrediction};
 
-pub fn parse_config(database: Arc<RwLock<Database>>, config: Config) {
+// Transloc
+pub fn update_route_list(database: Arc<RwLock<TranslocDatabase>>, routes: Vec<transloc_api::Route>) {
+    let mut db = database.write().unwrap();
+    for route in routes {
+        db.routes.entry(route.route_id.clone())
+            .or_insert(transloc::Route::new(route.route_id, route.long_name, route.stops));
+    }
+}
+
+pub fn update_stop_list(database: Arc<RwLock<TranslocDatabase>>, stops: Vec<transloc_api::Stop>) {
+    let mut db = database.write().unwrap();
+    for stop in stops {
+        db.stops.entry(stop.stop_id.clone())
+            .or_insert(transloc::Stop::new(stop.stop_id,
+                                           stop.name,
+                                           stop.routes,
+                                           (stop.location.lat, stop.location.lng)));
+    }
+}
+
+pub fn update_arrival_estimates(database: Arc<RwLock<TranslocDatabase>>,
+                                estimates: transloc_api::ArrivalEstimates) {
+    let mut db = database.write().unwrap();
+    db.arrivals.clear();
+    for stop in estimates.data {
+        for route in stop.arrivals {
+            let time = DateTime::parse_from_rfc3339(&route.arrival_at).unwrap().timestamp_millis() as f64;
+            let mut times = db.arrivals.entry((route.route_id, stop.stop_id)).or_insert(Vec::new());
+            times.push(time);
+        }
+    }
+    
+}
+
+
+// Nextbus
+pub fn parse_config(database: Arc<RwLock<NextBusDatabase>>, config: Config) {
     let mut routes = HashMap::new();
     let mut stops = HashMap::new();
     
     for r in config.route.into_iter() {
         let route = routes.entry(r.tag.clone()).or_insert(Route::new(r.tag.clone(), r.title.clone()));
         for s in r.stop.into_iter() {
-            let stop_campus = lookup::stop_campus(&s.tag);
+            let stop_campus = "unknown".to_string();
             let stop = stops.entry(s.tag.clone())
                 .or_insert(Stop::new(s.tag.clone(), s.title.clone(), stop_campus.clone()));
             stop.routes.push(StopRoute::new(r.tag.clone(), r.title.clone()));
@@ -35,7 +78,7 @@ pub fn parse_config(database: Arc<RwLock<Database>>, config: Config) {
 }
 
 
-pub fn parse_predictions(database: Arc<RwLock<Database>>, schedule: Schedule) {
+pub fn parse_predictions(database: Arc<RwLock<NextBusDatabase>>, schedule: Schedule) {
     let mut routes = HashMap::new();
     let mut stops  = HashMap::new();
 

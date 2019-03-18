@@ -2,7 +2,7 @@ use std::error::Error;
 use serde_json;
 use reqwest;
 
-use model::nextbus::{ Config, Schedule };
+use model::nextbus_api::{ Config, Schedule };
 
 
 static CONFIG_URL: &str =
