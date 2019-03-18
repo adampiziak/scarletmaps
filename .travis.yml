@@ -7,3 +7,8 @@ before_install:
 - openssl aes-256-cbc -K $encrypted_70ba39ff6889_key -iv $encrypted_70ba39ff6889_iv -in travis_rsa.enc -out travis_rsa -d
 
 script: ./test.sh
+
+deploy:
+  skip_cleanup: true
+  provider: script
+  script: .travis/deploy.sh
