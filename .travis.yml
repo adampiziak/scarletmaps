@@ -1,7 +1,8 @@
 language: rust
-cache: cargo
 rust:
   - nightly
+
+cache: cargo
 
 addons:
   ssh_known_hosts: scarletbus.com
