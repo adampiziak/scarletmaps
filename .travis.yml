@@ -13,8 +13,6 @@ before_install:
 
 script: ./test.sh
 
-
-
 deploy:
   skip_cleanup: true
   provider: script
