@@ -2,6 +2,8 @@
 // Rutgers University ID: 1323
 
 use std::fs;
+use std::env;
+use std::process;
 use serde_json::Value;
 use serde_json;
 use std::error::Error;
@@ -61,7 +63,7 @@ pub fn fetch_stops() -> Result<Vec<Stop>, Box<Error>> {
 }
 
 pub fn get_client() -> Client {
-    let key = fs::read_to_string("TRANSLOC_KEY").expect("Transloc key file not found");
+    let key = env::var("TRANSLOC_KEY").expect("NO TRANSLOC KEY");
     let mut headers = header::HeaderMap::new();
     headers.insert("X-Mashape-Key", HeaderValue::from_str(&key).unwrap());
     headers.insert("Accept", HeaderValue::from_static("application/json"));
