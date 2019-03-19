@@ -32,7 +32,7 @@ type TranslocSchema = RootNode<'static, TranslocDatabase, EmptyMutation<Transloc
 
 #[get("/")]
 fn root() -> &'static str {
-    "Hello therea"
+    "Hello there!"
 }
 
 #[get("/graphql")]
