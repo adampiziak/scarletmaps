@@ -1,4 +1,8 @@
 # ScarletBus
+<p>
+  <a href="/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
+  <a href="https://travis-ci.org/adam-piziak/scarletbus"><img src="https://travis-ci.org/adam-piziak/scarletbus.svg?branch=master"></a>
+  </p>
 Welcome to the ScarletBus API. This is a GraphQL API built on top of the Transloc service used by Rutgers University. It aims to provide extensive information about Rutgers routes and stops in a flexible manner. Because this is a GraphQL endpoint, the responses can be tailored to the user's specific needs.
 
 ## Types
