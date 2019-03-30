@@ -5,7 +5,6 @@ use std::sync::{Arc, RwLock};
 use std::collections::HashMap;
 use chrono::{DateTime};
 
-use api::lookup;
 use model::nextbus::{NextBusDatabase, Route, RouteStop, Stop, StopRoute};
 use model::nextbus_api::{Config, Schedule};
 use model::transloc::{TranslocDatabase, self};
@@ -47,7 +46,18 @@ pub fn update_arrival_estimates(database: Arc<RwLock<TranslocDatabase>>,
             times.push(time);
         }
     }
-    
+}
+
+pub fn update_vehicle_data(database: Arc<RwLock<TranslocDatabase>>, vehicles: Vec<transloc_api::Vehicle>) {
+    let mut db = database.write().unwrap();
+    db.vehicles.clear();
+    for vehicle in vehicles {
+        let v = transloc::Vehicle::new(vehicle.vehicle_id, (vehicle.location.lat, vehicle.location.lng));
+        let route = db.vehicles.entry(vehicle.route_id)
+            .or_insert(Vec::new());
+        route.push(v);
+    }    
+
 }
 
 

@@ -69,3 +69,8 @@ pub fn update_segments(transloc_db: Arc<RwLock<TranslocDatabase>>) {
         }
     }
 }
+
+pub fn update_vehicle_data(transloc_db: Arc<RwLock<TranslocDatabase>>) {
+    let vehicles = transloc::fetch_vehicle_locations().unwrap().data.vehicles;
+    builder::update_vehicle_data(transloc_db, vehicles);
+}

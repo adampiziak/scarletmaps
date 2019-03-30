@@ -1,5 +1,5 @@
 use juniper::Context;
-use model::transloc::{TranslocDatabase, Route, Stop};
+use model::transloc::{TranslocDatabase, Route, Stop, Vehicle};
 use api::lookup;
 
 impl Context for TranslocDatabase {}
@@ -28,7 +28,11 @@ graphql_object!(TranslocDatabase: TranslocDatabase as "Query" |&self| {
                 .collect(),
             None => routes_iter.map(|r| RoutePair(r, 0)).collect()
         }
-            
+    }
+
+    field vehicles(&executor, id: i32 as "route id (required)")  -> Option<&Vec<Vehicle>> {
+        let db = executor.context();
+        db.get_route_vehicles(&id)
     }
 
     field stop(&executor, id: i32 as "stop id (required)") -> Option<StopPair> {
@@ -86,7 +90,16 @@ graphql_object!(<'a> RoutePair<'a>: TranslocDatabase as "RoutePair" |&self| {
     field areas() -> Vec<String> {
         lookup::get_route_areas(&self.0.served_stops)
     }
-    
+});
+
+graphql_object!(Vehicle: TranslocDatabase as "Vehicle" |&self| {
+    field id() -> &i32 {
+        &self.id
+    }
+
+    field location() -> Vec<f64> {
+        vec![self.location.1, self.location.0]
+    }    
 });
 
 graphql_object!(<'a> StopPair<'a>: TranslocDatabase as "StopPair" |&self| {

@@ -1,10 +1,7 @@
 // Interface to Transloc Servers
 // Rutgers University ID: 1323
 
-use std::fs;
 use std::env;
-use std::process;
-use serde_json::Value;
 use serde_json;
 use std::error::Error;
 use reqwest::Client;
@@ -12,8 +9,7 @@ use reqwest::header::{self, HeaderValue};
 use std::collections::HashMap;
 use polyline;
 
-
-use model::transloc_api::{Routes, Route, Stops, Stop, ArrivalEstimates, StopArrivals, Arrival};
+use model::transloc_api::{Routes, Route, Stops, Stop, ArrivalEstimates, VehicleData};
 
 pub fn fetch_routes() -> Result<Vec<Route>, Box<Error>> {
     let client = get_client();
@@ -95,7 +91,7 @@ pub fn fetch_segments(route_id: i32) -> Result<Vec<Vec<Vec<f64>>>, Box<Error>>{
     let m: Segments = serde_json::from_str(&res).unwrap();
 
     let mut segments = Vec::new();
-    for (key, value) in m.data {
+    for (_key, value) in m.data {
         let polyline = polyline::decode_polyline(&value, 5)
             .unwrap()
             .into_iter()
@@ -105,4 +101,17 @@ pub fn fetch_segments(route_id: i32) -> Result<Vec<Vec<Vec<f64>>>, Box<Error>>{
     }
 
     Ok(segments)
+}
+
+pub fn fetch_vehicle_locations() -> Result<VehicleData, Box<Error>> {
+    let client = get_client();
+    let url = "https://transloc-api-1-2.p.rapidapi.com/vehicles.json?callback=call&agencies=1323";
+
+    let res = client.get(url)
+        .send().unwrap()
+        .text().unwrap();
+
+    let parsed_res: VehicleData = serde_json::from_str(&res).unwrap();
+    
+    Ok(parsed_res)
 }

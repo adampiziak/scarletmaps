@@ -3,7 +3,8 @@ use std::collections::HashMap;
 pub struct TranslocDatabase {
     pub routes: HashMap<i32, Route>,
     pub stops: HashMap<i32, Stop>,
-    pub arrivals: HashMap<(i32, i32), Vec<f64>> // Hashmap with key (routeid, stop_id) and times
+    pub arrivals: HashMap<(i32, i32), Vec<f64>>, // Hashmap with key (routeid, stop_id) and times
+    pub vehicles: HashMap<i32, Vec<Vehicle>>
 }
 
 impl TranslocDatabase {
@@ -11,7 +12,8 @@ impl TranslocDatabase {
         TranslocDatabase {
             routes: HashMap::new(),
             stops: HashMap::new(),
-            arrivals: HashMap::new()
+            arrivals: HashMap::new(),
+            vehicles: HashMap::new()
         }
     }
 
@@ -28,6 +30,11 @@ impl TranslocDatabase {
     pub fn get_stop(&self, id: &i32) -> Option<&Stop> {
         self.stops.get(id)
     }
+
+    pub fn get_route_vehicles(&self, id: &i32) -> Option<&Vec<Vehicle>> {
+        self.vehicles.get(id)
+    }
+
 
     pub fn get_stops(&self) -> Vec<&Stop> {
         let mut stops: Vec<&Stop> = self.stops.iter().map(|(_, stop)| stop).collect();
@@ -93,6 +100,11 @@ pub struct Stop {
     pub served_routes: Vec<i32>,   // IDs of routes served
 }
 
+pub struct Vehicle {
+    pub id: i32,
+    pub location: (f64, f64)
+}
+
 impl Route {
     pub fn new(id: i32, name: String, stop_str_ids: Vec<String>) -> Route {
         let stop_ids: Vec<i32> = stop_str_ids.into_iter().map(|x| x.parse::<i32>().unwrap()).collect();
@@ -117,6 +129,15 @@ impl Stop {
             location,
             area_id: 0,
             served_routes: route_ids,
+        }
+    }
+}
+
+impl Vehicle {
+    pub fn new(id: i32, location: (f64, f64)) -> Vehicle {
+        Vehicle {
+            id,
+            location
         }
     }
 }

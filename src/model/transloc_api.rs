@@ -33,11 +33,11 @@ pub struct Stop {
     pub stop_id: i32,
     pub name: String,
     pub routes: Vec<String>,
-    pub location: StopLocation
+    pub location: Location
 }
 
-#[derive(Deserialize)]
-pub struct StopLocation {
+#[derive(Deserialize, Debug)]
+pub struct Location {
     pub lat: f64,
     pub lng: f64
 }
@@ -73,7 +73,21 @@ fn from_str<'de, T, D>(deserializer: D) -> Result<T, D::Error>
 }
 
 #[derive(Deserialize)]
-pub struct VehicleLocationResponse {
+pub struct VehicleData {
+    pub data: VehicleLocationAgency
+}
+
+#[derive(Deserialize)]
+pub struct VehicleLocationAgency {
     #[serde(rename="1323")]
-    pub vehicles: Vec<Route>,
+    pub vehicles: Vec<Vehicle>,
+}
+    
+#[derive(Deserialize)]
+pub struct Vehicle {
+    #[serde(deserialize_with = "from_str")]
+    pub route_id: i32,
+    #[serde(deserialize_with = "from_str")]
+    pub vehicle_id: i32,
+    pub location: Location
 }

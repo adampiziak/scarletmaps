@@ -1,4 +1,3 @@
-#![feature(proc_macro_hygiene)]
 use phf::phf_map;
 
 static BUSCH: &'static str = "Busch";

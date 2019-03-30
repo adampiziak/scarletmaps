@@ -10,10 +10,20 @@ mod tasks;
 pub fn start(nextbus_db: Arc<RwLock<NextBusDatabase>>, transloc_db: Arc<RwLock<TranslocDatabase>> ) {
     gather_transloc_metadata(Arc::clone(&transloc_db));
     poll_transloc_arrivals(Arc::clone(&transloc_db));
+    poll_transloc_vehicles(Arc::clone(&transloc_db));
 
     gather_transloc_segments(Arc::clone(&transloc_db));
     start_config_updater(Arc::clone(&nextbus_db));
     start_prediction_updater(Arc::clone(&nextbus_db));
+}
+
+fn poll_transloc_vehicles(database: Arc<RwLock<TranslocDatabase>>) {
+    thread::spawn(move || {
+        loop {
+            tasks::update_vehicle_data(Arc::clone(&database));
+            thread::sleep(Duration::from_secs(10));
+        }
+    });
 }
 
 fn poll_transloc_arrivals(database: Arc<RwLock<TranslocDatabase>>) {
