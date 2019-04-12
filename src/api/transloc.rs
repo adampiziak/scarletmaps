@@ -23,18 +23,6 @@ pub fn fetch_routes() -> Result<Vec<Route>, Box<Error>> {
     Ok(transloc_routes.data.routes)
 }
 
-/*
-pub fn fetch_arrival_estimates(routes: Vec<i32>) -> Result<ArrivalEstimates, Box<Error>> {
-    let client = get_client();
-    for id in routes {
-        let res = client
-            .get("https://transloc-api-1-2.p.mashape.com/routes.json?agencies=1323&callback=call")
-            .send()?
-            .text()?;
-    }
-}
-*/
-
 pub fn fetch_arrival_estimates() -> Result<ArrivalEstimates, Box<Error>> {
     let client = get_client();
     let res = client

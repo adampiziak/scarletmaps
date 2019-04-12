@@ -66,6 +66,22 @@ graphql_object!(<'a> RoutePair<'a>: TranslocDatabase as "RoutePair" |&self| {
         &self.0.name
     }
 
+    field active(&executor) -> bool {
+        let db = executor.context();
+        let stops_iter = db.get_stops_by_ids(&self.0.served_stops).into_iter();
+        let mut active = false;
+        for stop in stops_iter {
+            match db.arrivals.get(&(self.0.id, stop.id)) {
+                Some(arrivals) => {
+                    if arrivals.len() > 0 {
+                        active = true;
+                    }
+                },
+                None => ()
+            }
+        }
+        return active
+    }
     
     field stops(&executor, active: Option<bool>) -> Vec<StopPair> {
         let db = executor.context();

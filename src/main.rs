@@ -64,16 +64,13 @@ fn post_graphql(context: State<Arc<RwLock<TranslocDatabase>>>,
 fn main() {
     
     // Create Databases
-    let nextbus_database = Arc::new(RwLock::new(NextBusDatabase::new()));
     let transloc_database = Arc::new(RwLock::new(TranslocDatabase::new()));
 
-
     // Start Schedulers (Talk to nextbus and transloc servers)...
-    scheduler::start(Arc::clone(&nextbus_database), Arc::clone(&transloc_database));
+    scheduler::start(Arc::clone(&transloc_database));
     rocket::ignite()
         .mount("/", routes![root, post_graphql, graphiql, graphql, options_graphql])
         .attach(CORS())
-        .manage(Arc::clone(&nextbus_database))
         .manage(Arc::clone(&transloc_database))
         .manage(NextBusSchema::new(
             NextBusDatabase::new(),

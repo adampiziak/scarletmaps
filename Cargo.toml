@@ -15,3 +15,4 @@ phf = { version = "0.7.24", features = ["macros"] }
 chrono = "0.4.6"
 rocket_cors = "0.4.0"
 polyline = "0.5.0"
+mockito = "0.17.0"
