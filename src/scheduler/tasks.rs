@@ -2,23 +2,49 @@
 
 use std::sync::{Arc, RwLock};
 use api::{transloc, builder };
+use api::lookup::get_route_areas;
 use model::transloc::{TranslocDatabase};
 
 // Transloc
-pub fn update_routes_via_transloc(transloc_db: Arc<RwLock<TranslocDatabase>>) {
-    let routes = transloc::fetch_routes().unwrap();
-    builder::update_route_list(transloc_db, routes);
+pub fn update_route_list(transloc_db: Arc<RwLock<TranslocDatabase>>) {
+    let route_list = transloc::fetch_routes().unwrap();
+    builder::update_route_list(transloc_db, route_list);
 }
 
-pub fn update_stops_via_transloc(transloc_db: Arc<RwLock<TranslocDatabase>>) {
-    let stops = transloc::fetch_stops().unwrap();
-    builder::update_stop_list(transloc_db, stops);
+pub fn update_stop_list(transloc_db: Arc<RwLock<TranslocDatabase>>) {
+    let stop_list = transloc::fetch_stops().unwrap();
+    builder::update_stop_list(Arc::clone(&transloc_db), stop_list);
+    let mut db = transloc_db.write().unwrap();
+    let mut stop_areas: Vec<(i32, Vec<String>)> = Vec::new();
+    {
+        let stops = db.get_stops();
+
+        for stop in stops {
+            let mut areas = Vec::new();
+            for route_id in &stop.served_routes {
+                let route = db.get_route(&route_id).unwrap();
+                let route_areas = get_route_areas(&route.served_stops);
+                for area in route_areas {
+                    if !areas.contains(&area) {
+                        areas.push(area);
+                    }
+                }
+            }
+            areas.sort();
+            stop_areas.push((stop.id, areas));
+        }
+    }
+    for stop in stop_areas {
+        db.set_stop_served_areas(&stop.0, stop.1)
+    }
 }
+
 
 pub fn update_arrival_estimates(transloc_db: Arc<RwLock<TranslocDatabase>>) {
     let estimates = transloc::fetch_arrival_estimates().unwrap();
     builder::update_arrival_estimates(transloc_db, estimates);
 }
+
 
 pub fn update_segments(transloc_db: Arc<RwLock<TranslocDatabase>>) {
     let mut db = transloc_db.write().unwrap();
@@ -46,15 +72,5 @@ pub fn update_vehicle_data(transloc_db: Arc<RwLock<TranslocDatabase>>) {
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn test_add() {
-        assert_eq!(add(1, 2), 3);
-    }
 
-    #[test]
-    fn test_bad_add() {
-        // This assert would fire and test will fail.
-        // Please note, that private functions can be tested too!
-        assert_eq!(bad_add(1, 2), 3);
-    }
 }

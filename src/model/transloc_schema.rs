@@ -135,6 +135,10 @@ graphql_object!(<'a> StopPair<'a>: TranslocDatabase as "StopPair" |&self| {
         lookup::get_stop_area(&self.0.id)
     }
 
+    field areas() -> &Vec<String> {
+        &self.0.served_areas
+    }
+
     field routes(&executor, active: Option<bool>) -> Vec<RoutePair> {
         let db = executor.context();
         let routes_iter = db.get_routes_by_ids(&self.0.served_routes).into_iter();

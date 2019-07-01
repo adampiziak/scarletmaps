@@ -10,7 +10,6 @@ pub fn start(transloc_db: Arc<RwLock<TranslocDatabase>> ) {
     gather_transloc_metadata(Arc::clone(&transloc_db));
     poll_transloc_arrivals(Arc::clone(&transloc_db));
     poll_transloc_vehicles(Arc::clone(&transloc_db));
-
     gather_transloc_segments(Arc::clone(&transloc_db));
 }
 
@@ -46,8 +45,8 @@ fn gather_transloc_segments(database: Arc<RwLock<TranslocDatabase>>) {
 fn gather_transloc_metadata(database: Arc<RwLock<TranslocDatabase>>) {
     thread::spawn(move || {
         loop {
-            tasks::update_routes_via_transloc(Arc::clone(&database));
-            tasks::update_stops_via_transloc(Arc::clone(&database));
+            tasks::update_route_list(Arc::clone(&database));
+            tasks::update_stop_list(Arc::clone(&database));
             thread::sleep(Duration::from_secs(60*5));
         }
     });

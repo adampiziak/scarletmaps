@@ -40,7 +40,11 @@ impl TranslocDatabase {
         let mut stops: Vec<&Stop> = self.stops.iter().map(|(_, stop)| stop).collect();
         stops.sort_by_key(|&s| &s.name);
         stops
-            
+    }
+
+    pub fn set_stop_served_areas(&mut self, stop_id: &i32, areas: Vec<String>) {
+        let  stop = self.stops.get_mut(stop_id).unwrap();
+        stop.served_areas = areas
     }
 
     pub fn get_stops_by_ids(&self, ids: &Vec<i32>) -> Vec<&Stop> {
@@ -96,8 +100,9 @@ pub struct Stop {
     pub id: i32,
     pub name: String,
     pub location: (f64, f64),
-    pub area_id: i32,
-    pub served_routes: Vec<i32>,   // IDs of routes served
+    pub area: String,
+    pub served_areas: Vec<String>,
+    pub served_routes: Vec<i32>,   // IDs of active served routes
 }
 
 pub struct Vehicle {
@@ -127,7 +132,8 @@ impl Stop {
             id,
             name,
             location,
-            area_id: 0,
+            area: String::new(),
+            served_areas: Vec::new(),
             served_routes: route_ids,
         }
     }

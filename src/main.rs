@@ -22,17 +22,15 @@ use std::io::Cursor;
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::http::{Header, ContentType, Method, Status};
 use rocket::response::content;
-use model::nextbus::NextBusDatabase;
 use model::transloc::TranslocDatabase;
 use std::sync::{Arc, RwLock};
 use juniper::{EmptyMutation, RootNode};
 
-type NextBusSchema = RootNode<'static, NextBusDatabase, EmptyMutation<NextBusDatabase>>;
 type TranslocSchema = RootNode<'static, TranslocDatabase, EmptyMutation<TranslocDatabase>>;
 
 #[get("/")]
 fn root() -> &'static str {
-    "OK"
+    "OK2"
 }
 
 #[get("/graphql")]
@@ -72,10 +70,6 @@ fn main() {
         .mount("/", routes![root, post_graphql, graphiql, graphql, options_graphql])
         .attach(CORS())
         .manage(Arc::clone(&transloc_database))
-        .manage(NextBusSchema::new(
-            NextBusDatabase::new(),
-            EmptyMutation::<NextBusDatabase>::new(),
-        ))
         .manage(TranslocSchema::new(
             TranslocDatabase::new(),
             EmptyMutation::<TranslocDatabase>::new(),
