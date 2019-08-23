@@ -6,6 +6,7 @@ static NEWARK: &'static str = "Newark";
 static COOK_DOUGLAS: &'static str = "Cook Douglas";
 static GEORGE_STREET: &'static str = "George Street";
 static LIVINGSTON: &'static str = "Livingston";
+static CAMDEN: &'static str = "Camden";
 
 
 static STOP_INFO: phf::Map<i32, (&'static str, &'static str)> = phf_map! {
@@ -72,6 +73,12 @@ static STOP_INFO: phf::Map<i32, (&'static str, &'static str)> = phf_map! {
     4229516i32 => ("library_of_science", BUSCH),
     4229596i32 => ("lipman_hall", COOK_DOUGLAS),
     4230628i32 => ("livingston_health_center", LIVINGSTON),
+    4231784i32 => ("city lot 15", CAMDEN), 
+    4231786i32 => ("city lot 16", CAMDEN), 
+    4231788i32 => ("Law School (5th Street Under the Law Bridge)", CAMDEN),
+    4231790i32 => ("Nursing and Science Building [NSB]", CAMDEN),
+    4231792i32 => ("Business and Science Building [BSB]", CAMDEN)
+    
 };
 
 pub fn get_stop_area(id: &i32) -> String {

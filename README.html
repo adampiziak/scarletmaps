@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>README.html</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+
+</head>
+
+<body>
+
+<h1 id="scarletbus">ScarletBus</h1>
+
+<p>
+  <a href="/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
+  <a href="https://travis-ci.org/adam-piziak/scarletbus"><img src="https://travis-ci.org/adam-piziak/scarletbus.svg?branch=master"></a>
+  </p>
+Welcome to the ScarletBus API. This is a GraphQL API built on top of the Transloc service used by Rutgers University. It aims to provide extensive information about Rutgers routes and stops in a flexible manner. Because this is a GraphQL endpoint, the responses can be tailored to the user's specific needs.
+
+<h2 id="types">Types</h2>
+
+<p>This API provides four root types</p>
+
+<ul>
+<li><p>route(id: <code>int!</code>)</p></li>
+<li><p> id <code>int!</code></p></li>
+<li><p> name <code>String!</code></p></li>
+<li><p> areas <code>[String!]!</code></p></li>
+<li><p> segments <code>[String!]!</code></p></li>
+<li><p> stops <code>[Stop!]</code></p></li>
+<li><p>stop(id: <code>int!</code>)</p></li>
+<li><p> id <code>int!</code></p></li>
+<li><p> name <code>String!</code></p></li>
+<li><p> area <code>String!</code></p></li>
+<li><p> routes <code>[Route!]</code></p></li>
+<li><p>routes(active: <code>bool</code>)</p></li>
+<li><p>stops(active: <code>bool</code>)</p></li>
+</ul>
+
+<h2 id="examples">Examples</h2>
+
+<p>For example, the user can model a request to return the names of the currently active routes and their served areas.</p>
+
+<p>model</p>
+
+<pre><code class="js">{
+  routes (active: true) {
+    names
+    areas
+  }
+}
+</code></pre>
+
+<p>request</p>
+
+<pre><code class="js">axios.post('https://api.scarletbus.com/graphql/', {
+    query: {
+      {
+        routes (active: true) {
+          names
+          areas
+        }
+      }
+    }
+});
+/*
+{
+  routes[
+    {
+      name: &quot;A&quot;,
+      areas: [&quot;Busch&quot;, &quot;College Ave&quot;]
+    },
+    {
+      name: &quot;B&quot;,
+      areas: [&quot;Busch&quot;, Livingston]
+    }
+    ....
+  ]
+}
+
+*/
+</code></pre>
+
+<h2 id="license">License</h2>
+
+<p>This software falls under the MIT permissive license.</p>
+
+</body>
+</html>

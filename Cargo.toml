@@ -4,7 +4,7 @@ version = "0.0.1"
 authors = ["Adam Piziak <adam.piziak@rutgers.edu>"]
 
 [dependencies]
-rocket = "0.4.0"
+rocket = "0.4.2"
 reqwest = "0.9.5"
 serde = "1.0.80"
 serde_derive = "1.0.80"
