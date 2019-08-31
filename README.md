@@ -67,4 +67,4 @@ axios.post('https://api.scarletbus.com/graphql/', {
 ```
 
 ## License
-This software falls under the MIT permissive license.
+This project is licensed under the terms of the MIT license. See [LICENSE](https://github.com/adam-piziak/scarletbus/blob/master/LICENSE) for more details.
