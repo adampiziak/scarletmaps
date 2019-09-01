@@ -1,3 +1,5 @@
+<img src="documentation/logo.svg" height="60" />
+
 # ScarletMaps
 <p>
   <a href="/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
