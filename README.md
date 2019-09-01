@@ -1,10 +1,15 @@
-# ScarletBus
+# ScarletMaps
 <p>
   <a href="/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
   <a href="https://travis-ci.org/adam-piziak/scarletbus"><img src="https://travis-ci.org/adam-piziak/scarletbus.svg?branch=master"></a>
   </p>
-Welcome to the ScarletBus API. This is a GraphQL API built on top of the Transloc service used by Rutgers University. It aims to provide extensive information about Rutgers routes and stops in a flexible manner. Because this is a GraphQL endpoint, the responses can be tailored to the user's specific needs.
+Welcome to the ScarletMaps API. This is a GraphQL API built on top of the Transloc service used by Rutgers University. It aims to provide extensive information about Rutgers routes and stops in a flexible manner. Because this is a GraphQL endpoint, the responses can be tailored to the user's specific needs.
 
+## Clients
+| Name | Platform | Repository | Description | 
+| :--- | :------- | :--------- | :---------- | 
+| ScarletMaps | Web | [scarletmaps-web](https://github.com/adam-piziak/scarletmaps-web) | ScarletMaps website |
+| ScarletMaps | Android | [scarletmaps-android](https://github.com/adam-piziak/scarletmaps-android) | ScarletMaps Android application |
 ## Types
 This API provides four root types
 
@@ -67,4 +72,4 @@ axios.post('https://api.scarletbus.com/graphql/', {
 ```
 
 ## License
-This software falls under the MIT permissive license.
+This project is licensed under the terms of the MIT license. See [LICENSE](https://github.com/adam-piziak/scarletbus/blob/master/LICENSE) for more details.
