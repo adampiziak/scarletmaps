@@ -5,6 +5,11 @@
   </p>
 Welcome to the ScarletBus API. This is a GraphQL API built on top of the Transloc service used by Rutgers University. It aims to provide extensive information about Rutgers routes and stops in a flexible manner. Because this is a GraphQL endpoint, the responses can be tailored to the user's specific needs.
 
+## Clients
+| Name | Platform | Repository | Description | 
+| :--- | :------- | :--------- | :---------- | 
+| ScarletMaps | Web | [scarletmaps-web](https://github.com/adam-piziak/scarletmaps-web) | ScarletMaps website |
+| ScarletMaps | Android | [scarletmaps-android](https://github.com/adam-piziak/scarletmaps-android) | ScarletMaps Android application |
 ## Types
 This API provides four root types
 
