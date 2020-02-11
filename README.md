@@ -10,8 +10,8 @@ Welcome to the ScarletMaps API. This is a GraphQL API built on top of the Transl
 ## Clients
 | Name | Platform | Repository | Description | 
 | :--- | :------- | :--------- | :---------- | 
-| ScarletMaps | Web | [scarletmaps-web](https://github.com/adam-piziak/scarletmaps-web) | ScarletMaps client |
-| ScarletMaps | Android | [scarletmaps-android](https://github.com/adam-piziak/scarletmaps-android) | ScarletMaps Android application |
+| ScarletMaps | Web | [scarletmaps-web](https://github.com/adam-piziak/scarletmaps-web) | Web client |
+| ScarletMaps | Android | [scarletmaps-android](https://github.com/adam-piziak/scarletmaps-android) | Android client |
 ## Types
 This API provides four root types
 
